@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Common base for Xiaomi Ravelin devices.
+ */
+
+#include "ravelin.dtsi"
+
+/* GPIOs 18-21 are owned by TZ, reading them aborts (stock sky/breeze/flame/mist) */
+&tlmm {
+	qcom,gpios-reserved = <0 1 2 3 18 19 20 21>;
+};
+
+/* Camera sensors use L15B and run L6E down to 2.8V (mist-w-oss) */
+&apps_rsc_drv2 {
+	rpmh-regulator-ldob15 {
+		compatible = "qcom,rpmh-vrm-regulator";
+		qcom,resource-name = "ldob15";
+		qcom,regulator-type = "pmic5-ldo";
+		qcom,supported-modes =
+			<RPMH_REGULATOR_MODE_LPM
+			RPMH_REGULATOR_MODE_HPM>;
+		qcom,mode-threshold-currents = <0 30000>;
+		qcom,disable-mode = <RPMH_REGULATOR_MODE_LPM>;
+		L15B:
+		pm6450_l15: regulator-pm6450-l15 {
+			regulator-name = "pm6450_l15";
+			qcom,set = <RPMH_REGULATOR_SET_ALL>;
+			regulator-min-microvolt = <1000000>;
+			regulator-max-microvolt = <1304000>;
+			qcom,init-voltage = <1150000>;
+			qcom,init-mode = <RPMH_REGULATOR_MODE_HPM>;
+		};
+	};
+};
+
+&L6E {
+	regulator-min-microvolt = <2800000>;
+};
+
+/* USB 2.0 only, the QMP USB/DP PHY is unused (mist-w-oss, stock sky) */
+&dwc3_0 {
+	usb-phy = <&usb2_phy0>, <&usb_nop_phy>;
+	maximum-speed = "high-speed";
+};
+
+&usb_nop_phy {
+	status = "okay";
+};
+
+&usb_qmp_dp_phy {
+	status = "disabled";
+};
